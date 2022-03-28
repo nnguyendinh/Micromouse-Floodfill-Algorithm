@@ -19,8 +19,66 @@ void initElements()
         }
     }
     
-    queuePos = 0;
+    for (int j = 0; j < 15; j++)
+        for (int i = 0; i < 16; i++)
+        {
+            
+        }
+
+    queueStart = 0;
     queueEnd = 0;
+}
+
+//void setWall(char dir)
+//{
+//    switch (dir)
+//    {
+//        dir
+//    }
+//}
+
+void detectWalls()
+{
+    int currX = currPos->col;
+    int currY = 15 - currPos->row;
+
+    switch (currHead)
+    {
+    case NORTH:
+        if (API_wallFront())
+        {
+            horzWall[currPos->row][currPos->col] = 1;
+            API_setWall(currX, currY, 'n');
+        }
+        if (API_wallLeft())
+        {
+            vertWall[currPos->row][currPos->col] = 1;
+            API_setWall(currX, currY, 'w');
+        }
+        if (API_wallRight())
+        {
+            vertWall[currPos->row][currPos->col + 2] = 1;
+            API_setWall(currX, currY, 'e');
+        }
+        break;
+    case EAST:
+        if (API_wallFront())
+        {
+            vertWall[currPos->row][currPos->col + 2] = 1;
+            API_setWall(currX, currY, 'e');
+        }
+        if (API_wallLeft())
+        {
+            horzWall[currPos->row][currPos->col] = 1;
+            API_setWall(currX, currY, 'n');
+        }
+        if (API_wallRight())
+        {
+            horzWall[currPos->row + 2][currPos->col] = 1;
+            API_setWall(currX, currY, 's');
+        }
+        break;
+    }
 }
 
 struct Cell* newCell(int r, int c)           // Acts as a constructor for a cell cuz C is annoying
@@ -30,7 +88,9 @@ struct Cell* newCell(int r, int c)           // Acts as a constructor for a cell
     p->col = c;
 }
 
-void insertQueue(Cell* input) {
+void insertQueue(struct Cell* input) {
+    queueEnd++;
+    
     if (queueEnd == 512) {
         queueEnd = 0;
         //reset cause circular queue
@@ -38,10 +98,21 @@ void insertQueue(Cell* input) {
     
     queue[queueEnd] = input;
     //check me on this i might've messed up on pointers, i'm doing this right off of github and not from a compiler lol
-    queueEnd++;
 }
 
+void popQueueFront()
+{
+    queueStart++;
+    if (queueStart == 512) {
+        queueStart = 0;
+        //reset cause circular queue
+    }
+}
 
+struct Cell* queueFront()
+{
+    return queue[queueStart];
+}
 
 Action solver() {
     return floodFill();
@@ -64,6 +135,8 @@ Action floodFill() {
         initialized = 1;
     }
     
+    detectWalls();
+
     int nextHead = -1;
     int row = currPos->row;
     int col = currPos->col;
