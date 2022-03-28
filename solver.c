@@ -1,14 +1,14 @@
 #include "solver.h"
 #include "API.h"
+#include <stdlib.h>
 
 int initialized = 0;
 
 void initElements()
 {
-    row = 15;
-    col = 0;
-    currHead = NORTH;
-    for (int j = 0; j < 8; j++)
+    currPos = newCell(15, 0);           // Sets current position to row 15, column 0
+    currHead = NORTH;                    // Sets current heading to north
+    for (int j = 0; j < 8; j++)                // Initializes default Manhattan distances for empty maze
     {
         for (int i = 0; i < 8; i++)
         {
@@ -20,17 +20,18 @@ void initElements()
     }
 }
 
-struct Cell* newCell(struct Cell* a, int x_, int y_)
+struct Cell* newCell(int r, int c)           // Acts as a constructor for a cell cuz C is annoying
 {
-    a->x = x_;
-    a->y = y_;
+    struct Cell* p = malloc(sizeof(struct Cell));
+    p->row = r;
+    p->col = c;
 }
 
 Action solver() {
     return floodFill();
 }
 
-Action leftWallFollower() {
+Action leftWallFollower() {       // The simple left wall following algorithm that they provided
     if(API_wallFront()) {
         if(API_wallLeft()){
             return RIGHT;
@@ -41,13 +42,15 @@ Action leftWallFollower() {
 }
 
 Action floodFill() {
-    if (!initialized)
+    if (!initialized)           // Initializes all the elements once (there might be a better way to do this idk)
     {
         initElements();
         initialized = 1;
     }
     
     int nextHead = -1;
+    int row = currPos->row;
+    int col = currPos->col;
 
     if (row != 0 && Manhattans[row - 1][col] < Manhattans[row][col])
         nextHead = NORTH;
@@ -58,24 +61,24 @@ Action floodFill() {
     if (col != 0 && Manhattans[row][col - 1] < Manhattans[row][col])       // Find next heading
         nextHead = WEST;
 
-    if (nextHead == -1)
+    if (nextHead == -1)                     // If no path available, then idle (not correct)
         return IDLE;
 
-    if (nextHead == currHead)
+    if (nextHead == currHead)               // If next heading is in same direction, move forward
     {
         switch (currHead)
         {
         case NORTH:
-            row--;
+            currPos->row--;
             break;
         case EAST:
-            col++;
+            currPos->col++;
             break;
         case SOUTH:
-            row++;
+            currPos->row++;
             break;
         case WEST:
-            col--;
+            currPos->col--;
             break;
         }
         return FORWARD;
