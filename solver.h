@@ -19,14 +19,13 @@ struct Cell* queueFront();
 Rn its capable of initializing the default Manhattan distances and moving in the direction
 of decreasing distance until it can't anymore
 
-We still need to implement the queue, store locations of known walls, and then be able to 
+Queue is implement (I hope its correct), and I finished the ability to detect and remember walls
+
+Now we just need to implement the pseudocode to be able to 
 recalculate manhattan distances when it gets stuck
 */
 
 
-
-//for queue, first in first out, so we can probably simply while "popping" queueNodes just delete current working node,
-//   and then update current top of queue variable as it comes
 
 Action solver();
 Action leftWallFollower();
@@ -39,10 +38,7 @@ struct Cell* queue[512];
 int queueStart; //assuming circular queue, this helps us keep track of what position we are in in the queue, in terms of the "start"
 int queueEnd; //keep track of end of queue, where to add next
 
-
-// i am thinking that if it is a previously filled queue value, we just override it, if that makes sense
-
-int horzWall[17][16]; // one extra in the array, accounting starting from left-most wall, need one extra for the right-most wall
-int vertWall[16][17]; // one extra in the array, accounting starting from top-most wall, need one extra for the lower-most wall
+int horzWall[17][16]; // got rid of the extra in the array to have hopefully less confusion
+int vertWall[16][17]; 
 
 #endif

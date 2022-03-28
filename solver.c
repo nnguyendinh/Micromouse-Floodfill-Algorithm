@@ -29,53 +29,90 @@ void initElements()
     queueEnd = 0;
 }
 
-//void setWall(char dir)
-//{
-//    switch (dir)
-//    {
-//        dir
-//    }
-//}
-
-void detectWalls()
+void setWall(int dir)
 {
     int currX = currPos->col;
     int currY = 15 - currPos->row;
 
+    switch (dir)
+    {
+    case NORTH:
+        horzWall[currPos->row][currPos->col] = 1;   // Sets the 2D array value to 1 to represent true (there's no bool type in C)
+        API_setWall(currX, currY, 'n');             // Light up the discovered wall in the simulator
+        break;
+    case EAST:
+        vertWall[currPos->row][currPos->col + 2] = 1;   // May need to check 2D array logic my head hurts lol
+        API_setWall(currX, currY, 'e');
+        break;
+    case SOUTH:
+        horzWall[currPos->row + 2][currPos->col] = 1;
+        API_setWall(currX, currY, 's');
+        break;
+    case WEST:
+        vertWall[currPos->row][currPos->col] = 1;
+        API_setWall(currX, currY, 'w');
+        break;
+    }
+}
+
+void detectWalls()
+{
     switch (currHead)
     {
     case NORTH:
         if (API_wallFront())
         {
-            horzWall[currPos->row][currPos->col] = 1;
-            API_setWall(currX, currY, 'n');
+            setWall(NORTH);
         }
         if (API_wallLeft())
         {
-            vertWall[currPos->row][currPos->col] = 1;
-            API_setWall(currX, currY, 'w');
+            setWall(WEST);
         }
         if (API_wallRight())
         {
-            vertWall[currPos->row][currPos->col + 2] = 1;
-            API_setWall(currX, currY, 'e');
+            setWall(EAST);
         }
         break;
     case EAST:
         if (API_wallFront())
         {
-            vertWall[currPos->row][currPos->col + 2] = 1;
-            API_setWall(currX, currY, 'e');
+            setWall(EAST);
         }
         if (API_wallLeft())
         {
-            horzWall[currPos->row][currPos->col] = 1;
-            API_setWall(currX, currY, 'n');
+            setWall(NORTH);
         }
         if (API_wallRight())
         {
-            horzWall[currPos->row + 2][currPos->col] = 1;
-            API_setWall(currX, currY, 's');
+            setWall(SOUTH);
+        }
+        break;
+    case SOUTH:
+        if (API_wallFront())
+        {
+            setWall(SOUTH);
+        }
+        if (API_wallLeft())
+        {
+            setWall(EAST);
+        }
+        if (API_wallRight())
+        {
+            setWall(WEST);
+        }
+        break;
+    case WEST:
+        if (API_wallFront())
+        {
+            setWall(WEST);
+        }
+        if (API_wallLeft())
+        {
+            setWall(SOUTH);
+        }
+        if (API_wallRight())
+        {
+            setWall(NORTH);
         }
         break;
     }
@@ -135,7 +172,7 @@ Action floodFill() {
         initialized = 1;
     }
     
-    detectWalls();
+    detectWalls();  // Lights up detected walls and adds them to the 2D wall arrays
 
     int nextHead = -1;
     int row = currPos->row;
