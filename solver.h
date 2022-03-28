@@ -11,7 +11,7 @@ struct Cell
 };
 
 struct Cell* newCell(int x_, int y_);  // Initialize an existing cell with values x and y
-void insertQueue();     // TODO: Need to implement queue data structure
+void insertQueue(Cell* input);     // TODO: Need to implement queue data structure
 
 /*
 Rn its capable of initializing the default Manhattan distances and moving in the direction
