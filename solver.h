@@ -10,8 +10,8 @@ struct Cell
     int y;
 };
 
-void initCell(struct Cell* a, int x_, int y_);  // Initialize an existing cell with values x and y
-void insertQueue();
+struct Cell* newCell(struct Cell* a, int x_, int y_);  // Initialize an existing cell with values x and y
+void insertQueue();     // TODO: Need to implement queue data structure
 
 Action solver();
 Action leftWallFollower();

@@ -20,7 +20,7 @@ void initElements()
     }
 }
 
-void initCell(struct Cell* a, int x_, int y_)
+struct Cell* newCell(struct Cell* a, int x_, int y_)
 {
     a->x = x_;
     a->y = y_;
