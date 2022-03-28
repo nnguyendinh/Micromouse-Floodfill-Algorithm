@@ -35,7 +35,8 @@ struct Cell* currPos;
 Heading currHead;
 int Manhattans[16][16];
 struct Cell queue[512];
-int queuePos; //assuming circular queue, this helps us keep track of what position we are in in the queue,
+int queuePos; //assuming circular queue, this helps us keep track of what position we are in in the queue, in terms of the "start"
+int queueEnd; //keep track of end of queue, where to add next
 
 
 
