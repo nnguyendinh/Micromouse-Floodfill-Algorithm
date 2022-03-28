@@ -18,6 +18,9 @@ void initElements()
             Manhattans[15 - i][15 - j] = 14 - i - j;
         }
     }
+    
+    queuePos = 0;
+    queueEnd = 0;
 }
 
 struct Cell* newCell(int r, int c)           // Acts as a constructor for a cell cuz C is annoying
@@ -26,6 +29,19 @@ struct Cell* newCell(int r, int c)           // Acts as a constructor for a cell
     p->row = r;
     p->col = c;
 }
+
+void insertQueue(Cell* input) {
+    if (queueEnd == 512) {
+        queueEnd = 0;
+        //reset cause circular queue
+    }
+    
+    queue[queueEnd] = input;
+    //check me on this i might've messed up on pointers, i'm doing this right off of github and not from a compiler lol
+    queueEnd++;
+}
+
+
 
 Action solver() {
     return floodFill();
