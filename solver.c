@@ -165,16 +165,67 @@ void detectWalls()
 
 void recalculate()
 {
-    /*
-    Take front cell in queue “out of line” for consideration
+    
+    //please check this lol again i'm coding directly on github
+    
+    //while queue is not empty
+    while (queueStart != queueEnd) {
+    
+    
+        //Take front cell in queue “out of line” for consideration
+   
+        Cell* currElement = queueFront(); //has the current compared 
+        popQueueFront();
+    
+    
+        //Get the front cell’s minimum value amongst accessible neighbors.
+    
+        int neighborMinimum = -1;       //uninitialized or uncompared state when less than 0
+        if (horzWall[currElement->row][currElement->col] != 1) {        //north wall
+            if (neighborMinimum < 0 || neighborMinimum > Manhattans[currElement->row - 1][currElement->col]) {
+                neighborMinimum = Manhattans[currElement->row - 1][currElement->col];
+            }
+        }
+        if (vertWall[currElement->row][currElement->col + 1] != 1) {        //east wall
+            if (neighborMinimum < 0 || neighborMinimum > Manhattans[currElement->row][currElement->col + 1]) {
+                neighborMinimum = Manhattans[currElement->row][currElement->col + 1];
+            }
+        }
+        if (horzWall[currElement->row + 1][currElement->col] != 1) {        //south wall
+            if (neighborMinimum < 0 || neighborMinimum > Manhattans[currElement->row + 1][currElement->col]) {
+                neighborMinimum = Manhattans[currElement->row + 1][currElement->col];
+            }
+        }
+        if (vertWall[currElement->row][currElement->col] != 1) {        //west wall
+            if (neighborMinimum < 0 || neighborMinimum > Manhattans[currElement->row][currElement->col - 1]) {
+                neighborMinimum = Manhattans[currElement->row][currElement->col - 1];
+            }
+        }
 
-    Get the front cell’s minimum value amongst accessible neighbors.
+    //If the front cell’s value ≤ minimum of its neighbors, 
+    //set the front cell’s value to minimum + 1 and add all accessible neighbors to the queue.
+        if (Manhattans[currElement->row][currElement->col] <= neighborMinimum) {
+            Manhattans[currElement->row][currElement->col] = neighborMinimum + 1;
+        
+        //again set through the accessible ones and add to queue
+            if (horzWall[currElement->row][currElement->col] != 1) {        //north wall
+                insertQueue(newCell(currElement->row - 1, currElement->col));
+            }
+            if (vertWall[currElement->row][currElement->col + 1] != 1) {        //east wall
+                insertQueue(newCell(currElement->row, currElement->col + 1));
+            }
+            if (horzWall[currElement->row + 1][currElement->col] != 1) {        //south wall
+                insertQueue(newCell(currElement->row + 1, currElement->col));
+            }
+            if (vertWall[currElement->row][currElement->col] != 1) {        //west wall
+                insertQueue(newCell(currElement->row, currElement->row - 1));
+            }
+            
+            //we might have to check edge conditions (i.e. checking that we don't access -1 rows or something)
+        }
+    //Else, continue!
+    }
 
-    If the front cell’s value ≤ minimum of its neighbors, 
-    set the front cell’s value to minimum + 1 and add all accessible neighbors to the queue.
-
-    Else, continue!
-    */
 }
 
 
