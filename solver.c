@@ -1,8 +1,42 @@
-#include "solver.h"
+﻿#include "solver.h"
 #include "API.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 int initialized = 0;
+
+struct Cell* newCell(int r, int c)           // Acts as a constructor for a cell cuz C is annoying
+{
+    struct Cell* p = malloc(sizeof(struct Cell));
+    p->row = r;
+    p->col = c;
+}
+
+void insertQueue(struct Cell* input) {
+    queueEnd++;
+
+    if (queueEnd == 512) {
+        queueEnd = 0;
+        //reset cause circular queue
+    }
+
+    queue[queueEnd] = input;
+    //check me on this i might've messed up on pointers, i'm doing this right off of github and not from a compiler lol
+}
+
+void popQueueFront()
+{
+    queueStart++;
+    if (queueStart == 512) {
+        queueStart = 0;
+        //reset cause circular queue
+    }
+}
+
+struct Cell* queueFront()
+{
+    return queue[queueStart];
+}
 
 void initElements()
 {
@@ -29,6 +63,17 @@ void initElements()
     queueEnd = 0;
 }
 
+void displayManhatttans()       // Displays all current manhattan distances in grid
+{
+    for (int j = 0; j < 16; j++)
+        for (int i = 0; i < 16; i++)
+        {
+            char str[4];
+            sprintf(str, "%d", Manhattans[j][i]);
+            API_setText(j, i, str);
+        }
+}
+
 void setWall(int dir)
 {
     int currX = currPos->col;
@@ -41,11 +86,11 @@ void setWall(int dir)
         API_setWall(currX, currY, 'n');             // Light up the discovered wall in the simulator
         break;
     case EAST:
-        vertWall[currPos->row][currPos->col + 2] = 1;   // May need to check 2D array logic my head hurts lol
+        vertWall[currPos->row][currPos->col + 1] = 1;   // May need to check 2D array logic my head hurts lol
         API_setWall(currX, currY, 'e');
         break;
     case SOUTH:
-        horzWall[currPos->row + 2][currPos->col] = 1;
+        horzWall[currPos->row + 1][currPos->col] = 1;
         API_setWall(currX, currY, 's');
         break;
     case WEST:
@@ -118,38 +163,20 @@ void detectWalls()
     }
 }
 
-struct Cell* newCell(int r, int c)           // Acts as a constructor for a cell cuz C is annoying
+void recalculate()
 {
-    struct Cell* p = malloc(sizeof(struct Cell));
-    p->row = r;
-    p->col = c;
+    /*
+    Take front cell in queue “out of line” for consideration
+
+    Get the front cell’s minimum value amongst accessible neighbors.
+
+    If the front cell’s value ≤ minimum of its neighbors, 
+    set the front cell’s value to minimum + 1 and add all accessible neighbors to the queue.
+
+    Else, continue!
+    */
 }
 
-void insertQueue(struct Cell* input) {
-    queueEnd++;
-    
-    if (queueEnd == 512) {
-        queueEnd = 0;
-        //reset cause circular queue
-    }
-    
-    queue[queueEnd] = input;
-    //check me on this i might've messed up on pointers, i'm doing this right off of github and not from a compiler lol
-}
-
-void popQueueFront()
-{
-    queueStart++;
-    if (queueStart == 512) {
-        queueStart = 0;
-        //reset cause circular queue
-    }
-}
-
-struct Cell* queueFront()
-{
-    return queue[queueStart];
-}
 
 Action solver() {
     return floodFill();
@@ -173,18 +200,24 @@ Action floodFill() {
     }
     
     detectWalls();  // Lights up detected walls and adds them to the 2D wall arrays
+    displayManhatttans();
 
     int nextHead = -1;
     int row = currPos->row;
     int col = currPos->col;
 
-    if (row != 0 && Manhattans[row - 1][col] < Manhattans[row][col])
+    int northBlocked = horzWall[currPos->row][currPos->col];
+    int eastBlocked = vertWall[currPos->row][currPos->col + 1];
+    int southBlocked = horzWall[currPos->row + 1][currPos->col];
+    int westBlocked = vertWall[currPos->row][currPos->col];
+
+    if (row != 0 && Manhattans[row - 1][col] < Manhattans[row][col] && !northBlocked)
         nextHead = NORTH;
-    if (col != 15 && Manhattans[row][col + 1] < Manhattans[row][col])
+    if (col != 15 && Manhattans[row][col + 1] < Manhattans[row][col] && !eastBlocked)
         nextHead = EAST;
-    if (row != 15 && Manhattans[row + 1][col] < Manhattans[row][col])
+    if (row != 15 && Manhattans[row + 1][col] < Manhattans[row][col] && !southBlocked)
         nextHead = SOUTH;
-    if (col != 0 && Manhattans[row][col - 1] < Manhattans[row][col])       // Find next heading
+    if (col != 0 && Manhattans[row][col - 1] < Manhattans[row][col] && !westBlocked)       // Find next heading
         nextHead = WEST;
 
     if (nextHead == -1)                     // If no path available, then idle (not correct)
