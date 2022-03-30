@@ -13,14 +13,14 @@ struct Cell* newCell(int r, int c)           // Acts as a constructor for a cell
 }
 
 void insertQueue(struct Cell* input) {
+    queue[queueEnd] = input;
+
     queueEnd++;
 
     if (queueEnd == 512) {
         queueEnd = 0;
         //reset cause circular queue
     }
-
-    queue[queueEnd] = input;
     //check me on this i might've messed up on pointers, i'm doing this right off of github and not from a compiler lol
 }
 
@@ -52,12 +52,6 @@ void initElements()
             Manhattans[15 - i][15 - j] = 14 - i - j;
         }
     }
-    
-    for (int j = 0; j < 15; j++)
-        for (int i = 0; i < 16; i++)
-        {
-            
-        }
 
     queueStart = 0;
     queueEnd = 0;
@@ -65,12 +59,12 @@ void initElements()
 
 void displayManhatttans()       // Displays all current manhattan distances in grid
 {
-    for (int j = 0; j < 16; j++)
-        for (int i = 0; i < 16; i++)
+    for (int row = 0; row < 16; row++)
+        for (int col = 0; col < 16; col++)
         {
             char str[4];
-            sprintf(str, "%d", Manhattans[j][i]);
-            API_setText(j, i, str);
+            sprintf(str, "%d", Manhattans[row][col]);
+            API_setText(col, 15 - row, str);
         }
 }
 
@@ -165,19 +159,22 @@ void detectWalls()
 
 void recalculate()
 {
-    
     //please check this lol again i'm coding directly on github
-    
+
+    Manhattans[0][0] = 20;
+    Manhattans[1][1] = 20;
+    Manhattans[1][2] = 22;
+
+    insertQueue(newCell(currPos->row, currPos->col));
+
     //while queue is not empty
     while (queueStart != queueEnd) {
     
-    
         //Take front cell in queue “out of line” for consideration
    
-        Cell* currElement = queueFront(); //has the current compared 
+        struct Cell* currElement = queueFront(); //has the current compared 
         popQueueFront();
-    
-    
+
         //Get the front cell’s minimum value amongst accessible neighbors.
     
         int neighborMinimum = -1;       //uninitialized or uncompared state when less than 0
@@ -201,7 +198,6 @@ void recalculate()
                 neighborMinimum = Manhattans[currElement->row][currElement->col - 1];
             }
         }
-
     //If the front cell’s value ≤ minimum of its neighbors, 
     //set the front cell’s value to minimum + 1 and add all accessible neighbors to the queue.
         if (Manhattans[currElement->row][currElement->col] <= neighborMinimum) {
@@ -220,14 +216,11 @@ void recalculate()
             if (vertWall[currElement->row][currElement->col] != 1) {        //west wall
                 insertQueue(newCell(currElement->row, currElement->row - 1));
             }
-            
             //we might have to check edge conditions (i.e. checking that we don't access -1 rows or something)
         }
     //Else, continue!
     }
-
 }
-
 
 Action solver() {
     return floodFill();
@@ -271,8 +264,11 @@ Action floodFill() {
     if (col != 0 && Manhattans[row][col - 1] < Manhattans[row][col] && !westBlocked)       // Find next heading
         nextHead = WEST;
 
-    if (nextHead == -1)                     // If no path available, then idle (not correct)
+    if (nextHead == -1)                     // If no path available, then recalculta
+    {
+        recalculate();
         return IDLE;
+    }
 
     if (nextHead == currHead)               // If next heading is in same direction, move forward
     {
