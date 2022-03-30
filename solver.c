@@ -174,7 +174,7 @@ void recalculate()
     
         //Take front cell in queue “out of line” for consideration
    
-        Cell* currElement = queueFront(); //has the current compared 
+        struct Cell* currElement = queueFront(); //has the current compared 
         popQueueFront();
     
     
