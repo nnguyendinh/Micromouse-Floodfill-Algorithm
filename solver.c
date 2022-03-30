@@ -169,14 +169,14 @@ void recalculate()
 
     //while queue is not empty
     while (queueStart != queueEnd) {
-    
+
         //Take front cell in queue “out of line” for consideration
-   
+
         struct Cell* currElement = queueFront(); //has the current compared 
         popQueueFront();
 
         //Get the front cell’s minimum value amongst accessible neighbors.
-    
+
         int neighborMinimum = -1;       //uninitialized or uncompared state when less than 0
         if (horzWall[currElement->row][currElement->col] != 1) {        //north wall
             if (neighborMinimum < 0 || neighborMinimum > Manhattans[currElement->row - 1][currElement->col]) {
@@ -198,12 +198,12 @@ void recalculate()
                 neighborMinimum = Manhattans[currElement->row][currElement->col - 1];
             }
         }
-    //If the front cell’s value ≤ minimum of its neighbors, 
-    //set the front cell’s value to minimum + 1 and add all accessible neighbors to the queue.
+        //If the front cell’s value ≤ minimum of its neighbors, 
+        //set the front cell’s value to minimum + 1 and add all accessible neighbors to the queue.
         if (Manhattans[currElement->row][currElement->col] <= neighborMinimum) {
             Manhattans[currElement->row][currElement->col] = neighborMinimum + 1;
-        
-        //again set through the accessible ones and add to queue
+
+            //again set through the accessible ones and add to queue
             if (horzWall[currElement->row][currElement->col] != 1) {        //north wall
                 insertQueue(newCell(currElement->row - 1, currElement->col));
             }
@@ -218,7 +218,7 @@ void recalculate()
             }
             //we might have to check edge conditions (i.e. checking that we don't access -1 rows or something)
         }
-    //Else, continue!
+        //Else, continue!
     }
 }
 
@@ -227,8 +227,8 @@ Action solver() {
 }
 
 Action leftWallFollower() {       // The simple left wall following algorithm that they provided
-    if(API_wallFront()) {
-        if(API_wallLeft()){
+    if (API_wallFront()) {
+        if (API_wallLeft()) {
             return RIGHT;
         }
         return LEFT;
@@ -242,7 +242,7 @@ Action floodFill() {
         initElements();
         initialized = 1;
     }
-    
+
     detectWalls();  // Lights up detected walls and adds them to the 2D wall arrays
     displayManhatttans();
 
