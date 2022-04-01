@@ -52,7 +52,19 @@ void initElements()
             Manhattans[15 - i][15 - j] = 14 - i - j;
         }
     }
+    
+    for (int i = 0; i < 17; i++) {
+        for (int j = 0; j < 16; j++) {
+            horzWall[i][j] = 0;
+        } 
+    }
 
+    for (int i = 0; j < 17; i++) {
+        for (int j = 0; i < 16; j++) {
+            vertWall[i][j] = 0;
+        } 
+    }
+    
     queueStart = 0;
     queueEnd = 0;
 }
