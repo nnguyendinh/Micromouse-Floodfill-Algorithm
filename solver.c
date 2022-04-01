@@ -59,8 +59,8 @@ void initElements()
         } 
     }
 
-    for (int i = 0; j < 17; i++) {
-        for (int j = 0; i < 16; j++) {
+    for (int i = 0; i < 16; i++) {
+        for (int j = 0; j < 17; j++) {
             vertWall[i][j] = 0;
         } 
     }
@@ -173,10 +173,6 @@ void recalculate()
 {
     //please check this lol again i'm coding directly on github
 
-    Manhattans[0][0] = 20;
-    Manhattans[1][1] = 20;
-    Manhattans[1][2] = 22;
-
     insertQueue(newCell(currPos->row, currPos->col));
 
     //while queue is not empty
@@ -261,6 +257,9 @@ Action floodFill() {
     int nextHead = -1;
     int row = currPos->row;
     int col = currPos->col;
+
+    if (Manhattans[row][col] == 0)
+        return IDLE;
 
     int northBlocked = horzWall[currPos->row][currPos->col];
     int eastBlocked = vertWall[currPos->row][currPos->col + 1];
