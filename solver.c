@@ -26,6 +26,8 @@ void insertQueue(struct Cell* input) {
 
 void popQueueFront()
 {
+    free(queueFront());
+
     queueStart++;
     if (queueStart == 512) {
         queueStart = 0;
@@ -180,7 +182,6 @@ void recalculate()
         //Take front cell in queue “out of line” for consideration
 
         struct Cell* currElement = queueFront(); //has the current compared 
-        popQueueFront();
 
         char str[50];
         sprintf(str, "Calculating distances at row %d, column %d", currElement->row, currElement->col);
@@ -217,30 +218,33 @@ void recalculate()
             //again set through the accessible ones and add to queue
             if (horzWall[currElement->row][currElement->col] != 1) {        //north wall
                 insertQueue(newCell(currElement->row - 1, currElement->col));
-                char str[50];
-                sprintf(str, "Added row %d, column %d to the queue", currElement->row - 1, currElement->col);
-                debug_log(str);
+                //char str[50];
+                //sprintf(str, "Added row %d, column %d to the queue", currElement->row - 1, currElement->col);
+                //debug_log(str);
             }
             if (vertWall[currElement->row][currElement->col + 1] != 1) {        //east wall
                 insertQueue(newCell(currElement->row, currElement->col + 1));
-                char str[50];
-                sprintf(str, "Added row %d, column %d to the queue", currElement->row, currElement->col + 1);
-                debug_log(str);
+                //char str[50];
+                //sprintf(str, "Added row %d, column %d to the queue", currElement->row, currElement->col + 1);
+                //debug_log(str);
             }
             if (horzWall[currElement->row + 1][currElement->col] != 1) {        //south wall
                 insertQueue(newCell(currElement->row + 1, currElement->col));
-                char str[50];
-                sprintf(str, "Added row %d, column %d to the queue", currElement->row + 1, currElement->col);
-                debug_log(str);
+                //char str[50];
+                //sprintf(str, "Added row %d, column %d to the queue", currElement->row + 1, currElement->col);
+                //debug_log(str);
             }
             if (vertWall[currElement->row][currElement->col] != 1) {        //west wall
                 insertQueue(newCell(currElement->row, currElement->col - 1));
-                char str[50];
-                sprintf(str, "Added row %d, column %d to the queue", currElement->row, currElement->col - 1);
-                debug_log(str);
+                //char str[50];
+                //sprintf(str, "Added row %d, column %d to the queue", currElement->row, currElement->col - 1);
+                //debug_log(str);
             }
             //we might have to check edge conditions (i.e. checking that we don't access -1 rows or something)
         }
+
+        popQueueFront();      // Deletes cell from queue and frees memory
+
         //Else, continue!
     }
 }
@@ -339,4 +343,42 @@ Action floodFill() {
     else
         currHead--;
     return LEFT;
+
+    //for (int i = 0; i < 16; i++)
+    //{
+    //    for (int j = 0; j < 16; j++)
+    //    {
+    //        insertQueue(newCell(i, j));
+    //        API_setColor(i, j, 'g');
+    //    }
+    //}
+    //for (int i = 0; i < 16; i++)
+    //{
+    //    for (int j = 0; j < 16; j++)
+    //    {
+    //        insertQueue(newCell(i, j));
+    //        API_setColor(i, j, 'r');
+    //    }
+    //}
+
+    //while (queueStart != queueEnd)
+    //{
+    //    API_setColor(queueFront()->row, queueFront()->col, 'b');
+    //    popQueueFront();
+    //}
+    //
+    //for (int i = 0; i < 16; i++)
+    //{
+    //    for (int j = 0; j < 16; j++)
+    //    {
+    //        insertQueue(newCell(i, j));
+    //        API_setColor(i, j, 'y');
+    //    }
+    //}
+
+    //while (queueStart != queueEnd)
+    //{
+    //    API_setColor(queueFront()->row, queueFront()->col, 'g');
+    //    popQueueFront();
+    //}
 }
