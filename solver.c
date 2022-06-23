@@ -1,15 +1,17 @@
-﻿#include "solver.h"
+#include "solver.h"
 #include "API.h"
 #include <stdlib.h>
 #include <stdio.h>
 
 int initialized = 0;
+int goToCenter = 1;
 
 struct Cell* newCell(int r, int c)           // Acts as a constructor for a cell cuz C is annoying
 {
     struct Cell* p = malloc(sizeof(struct Cell));
     p->row = r;
     p->col = c;
+    return p;
 }
 
 void insertQueue(struct Cell* input) {
@@ -21,7 +23,6 @@ void insertQueue(struct Cell* input) {
         queueEnd = 0;
         //reset cause circular queue
     }
-    //check me on this i might've messed up on pointers, i'm doing this right off of github and not from a compiler lol
 }
 
 void popQueueFront()
@@ -44,29 +45,19 @@ void initElements()
 {
     currPos = newCell(15, 0);           // Sets current position to row 15, column 0
     currHead = NORTH;                    // Sets current heading to north
-    for (int j = 0; j < 8; j++)                // Initializes default Manhattan distances for empty maze
-    {
-        for (int i = 0; i < 8; i++)
-        {
-            Manhattans[i][j] = 14 - i - j;
-            Manhattans[15 - i][j] = 14 - i - j;
-            Manhattans[i][15 - j] = 14 - i - j;
-            Manhattans[15 - i][15 - j] = 14 - i - j;
-        }
-    }
-    
+
     for (int i = 0; i < 17; i++) {
         for (int j = 0; j < 16; j++) {
             horzWall[i][j] = 0;
-        } 
+        }
     }
 
     for (int i = 0; i < 16; i++) {
         for (int j = 0; j < 17; j++) {
             vertWall[i][j] = 0;
-        } 
+        }
     }
-    
+
     queueStart = 0;
     queueEnd = 0;
 }
@@ -173,79 +164,76 @@ void detectWalls()
 
 void recalculate()
 {
+    queueStart = 0;
+    queueEnd = 0;
 
-    insertQueue(newCell(currPos->row, currPos->col));
+    // Mark all cells as -1, meaning that they have not had their Manhattan set yet
+    for (int j = 0; j < 16; j++)                
+    {
+        for (int i = 0; i < 16; i++)
+        {
+            Manhattans[i][j] = -1;
+        }
+    }
+
+    if(goToCenter) 
+    {
+        // Set middle four manhattan distances to 0, and insert all 4 into queue (set middle as destination)
+        Manhattans[7][7] = 0;
+        Manhattans[7][8] = 0;
+        Manhattans[8][7] = 0;
+        Manhattans[8][8] = 0;
+        insertQueue(newCell(7, 7));
+        insertQueue(newCell(7, 8));
+        insertQueue(newCell(8, 7));
+        insertQueue(newCell(8, 8));
+    }
+
+    else
+    {
+        // Set starting cell to 0, insert starting cell into queue (set start as destination)
+        Manhattans[15][0] = 0;
+        insertQueue(newCell(15, 0));
+    }
+
 
     //while queue is not empty
     while (queueStart != queueEnd) {
 
-        //Take front cell in queue “out of line” for consideration
-
-        struct Cell* currElement = queueFront(); //has the current compared 
+        struct Cell* currElement = queueFront(); 
+        
+        int currRow = currElement->row;
+        int currCol = currElement->col;
 
         char str[50];
-        sprintf(str, "Calculating distances at row %d, column %d", currElement->row, currElement->col);
+        sprintf(str, "Calculating distances at row %d, column %d", currRow, currCol);
         debug_log(str);
 
-        //Get the front cell’s minimum value amongst accessible neighbors.
+        // For all accessable neighbors with no set Manhattan distance, add cell to queue and set Manhattan to current Manhattan + 1
 
-        int neighborMinimum = -1;       //uninitialized or uncompared state when less than 0
-        if (horzWall[currElement->row][currElement->col] != 1) {        //north wall
-            if (neighborMinimum < 0 || neighborMinimum > Manhattans[currElement->row - 1][currElement->col]) {
-                neighborMinimum = Manhattans[currElement->row - 1][currElement->col];
-            }
+        //north wall
+        if (currRow > 0 && horzWall[currRow][currCol] != 1 && Manhattans[currRow - 1][currCol] == -1) {
+            Manhattans[currRow - 1][currCol] = Manhattans[currRow][currCol] + 1;
+            insertQueue(newCell(currRow - 1, currCol));
         }
-        if (vertWall[currElement->row][currElement->col + 1] != 1) {        //east wall
-            if (neighborMinimum < 0 || neighborMinimum > Manhattans[currElement->row][currElement->col + 1]) {
-                neighborMinimum = Manhattans[currElement->row][currElement->col + 1];
-            }
+        //east wall
+        if (currCol < 15 && vertWall[currRow][currCol + 1] != 1 && Manhattans[currRow][currCol + 1] == -1) {
+            Manhattans[currRow][currCol + 1] = Manhattans[currRow][currCol] + 1;
+            insertQueue(newCell(currRow, currCol + 1));
         }
-        if (horzWall[currElement->row + 1][currElement->col] != 1) {        //south wall
-            if (neighborMinimum < 0 || neighborMinimum > Manhattans[currElement->row + 1][currElement->col]) {
-                neighborMinimum = Manhattans[currElement->row + 1][currElement->col];
-            }
+        //south wall
+        if (currRow < 15 && horzWall[currRow + 1][currCol] != 1 && Manhattans[currRow + 1][currCol] == -1) {        
+            Manhattans[currRow + 1][currCol] = Manhattans[currRow][currCol] + 1;
+            insertQueue(newCell(currRow + 1, currCol));
         }
-        if (vertWall[currElement->row][currElement->col] != 1) {        //west wall
-            if (neighborMinimum < 0 || neighborMinimum > Manhattans[currElement->row][currElement->col - 1]) {
-                neighborMinimum = Manhattans[currElement->row][currElement->col - 1];
-            }
-        }
-        //If the front cell’s value ≤ minimum of its neighbors, 
-        //set the front cell’s value to minimum + 1 and add all accessible neighbors to the queue.
-        if (Manhattans[currElement->row][currElement->col] <= neighborMinimum) {
-            Manhattans[currElement->row][currElement->col] = neighborMinimum + 1;
-
-            //again set through the accessible ones and add to queue
-            if (horzWall[currElement->row][currElement->col] != 1) {        //north wall
-                insertQueue(newCell(currElement->row - 1, currElement->col));
-                //char str[50];
-                //sprintf(str, "Added row %d, column %d to the queue", currElement->row - 1, currElement->col);
-                //debug_log(str);
-            }
-            if (vertWall[currElement->row][currElement->col + 1] != 1) {        //east wall
-                insertQueue(newCell(currElement->row, currElement->col + 1));
-                //char str[50];
-                //sprintf(str, "Added row %d, column %d to the queue", currElement->row, currElement->col + 1);
-                //debug_log(str);
-            }
-            if (horzWall[currElement->row + 1][currElement->col] != 1) {        //south wall
-                insertQueue(newCell(currElement->row + 1, currElement->col));
-                //char str[50];
-                //sprintf(str, "Added row %d, column %d to the queue", currElement->row + 1, currElement->col);
-                //debug_log(str);
-            }
-            if (vertWall[currElement->row][currElement->col] != 1) {        //west wall
-                insertQueue(newCell(currElement->row, currElement->col - 1));
-                //char str[50];
-                //sprintf(str, "Added row %d, column %d to the queue", currElement->row, currElement->col - 1);
-                //debug_log(str);
-            }
-            //we might have to check edge conditions (i.e. checking that we don't access -1 rows or something)
+        //west wall
+        if (currCol > 0 && vertWall[currRow][currCol] != 1 && Manhattans[currRow][currCol - 1] == -1) {        
+            Manhattans[currRow][currCol - 1] = Manhattans[currRow][currCol] + 1;
+            insertQueue(newCell(currRow, currCol - 1));
         }
 
-        popQueueFront();      // Deletes cell from queue and frees memory
-
-        //Else, continue!
+        // Deletes cell from queue and frees memory
+        popQueueFront();      
     }
 }
 
@@ -264,26 +252,43 @@ Action leftWallFollower() {       // The simple left wall following algorithm th
 }
 
 Action floodFill() {
-    if (!initialized)           // Initializes all the elements once (there might be a better way to do this idk)
+    // Initializes all the elements and calculates Manhattan distances
+    if (!initialized)           
     {
         initElements();
+        recalculate();
         initialized = 1;
     }
 
-    detectWalls();  // Lights up detected walls and adds them to the 2D wall arrays
+    // Lights up detected walls and adds them to the 2D wall arrays
+    detectWalls();  
+
+    // Display all Manhattan distances in the API dispaly
     displayManhatttans();
 
-    int nextHead = -1;
     int row = currPos->row;
     int col = currPos->col;
 
+    // If goal has already been reached, set new destination to either middle or starting cell
     if (Manhattans[row][col] == 0)
-        return IDLE;
+    {
+        if (goToCenter)
+            goToCenter = 0; // Destination is now Starting Cell
+        else
+            goToCenter = 1; // Destination is now middle four
 
-    int northBlocked = horzWall[currPos->row][currPos->col];
-    int eastBlocked = vertWall[currPos->row][currPos->col + 1];
-    int southBlocked = horzWall[currPos->row + 1][currPos->col];
-    int westBlocked = vertWall[currPos->row][currPos->col];
+        recalculate();
+        return IDLE;
+    }
+
+
+    int northBlocked = horzWall[row][col];
+    int eastBlocked = vertWall[row][col + 1];
+    int southBlocked = horzWall[row + 1][col];
+    int westBlocked = vertWall[row][col];
+
+    // Find next heading
+    int nextHead = -1;
 
     if (row != 0 && Manhattans[row - 1][col] < Manhattans[row][col] && !northBlocked)
         nextHead = NORTH;
@@ -291,16 +296,18 @@ Action floodFill() {
         nextHead = EAST;
     if (row != 15 && Manhattans[row + 1][col] < Manhattans[row][col] && !southBlocked)
         nextHead = SOUTH;
-    if (col != 0 && Manhattans[row][col - 1] < Manhattans[row][col] && !westBlocked)       // Find next heading
+    if (col != 0 && Manhattans[row][col - 1] < Manhattans[row][col] && !westBlocked)       
         nextHead = WEST;
 
-    if (nextHead == -1)                     // If no path available, then recalculta
+    // If no path available, then recalculta
+    if (nextHead == -1)                     
     {
         recalculate();
         return IDLE;
     }
 
-    if (nextHead == currHead)               // If next heading is in same direction, move forward
+    // If next heading is in same direction, move forward
+    if (nextHead == currHead)               
     {
         switch (currHead)
         {
@@ -320,7 +327,8 @@ Action floodFill() {
         return FORWARD;
     }
 
-    if ((nextHead - currHead) % 2 == 0)         // If next heading is in opposite direction, turn right
+    // If next heading is in opposite direction, turn right
+    if ((nextHead - currHead) % 2 == 0)         
     {
         if (currHead == WEST)
             currHead = NORTH;
@@ -329,7 +337,8 @@ Action floodFill() {
         return RIGHT;
     }
 
-    if ((nextHead - currHead) == 1 || nextHead - currHead == -3)  // If next heading is right, turn right
+    // If next heading is right, turn right
+    if ((nextHead - currHead) == 1 || nextHead - currHead == -3)  
     {
         if (currHead == WEST)
             currHead = NORTH;
@@ -338,47 +347,10 @@ Action floodFill() {
         return RIGHT;
     }
 
-    if (currHead == NORTH)  // else, turn left
+    // else, turn left
+    if (currHead == NORTH)  
         currHead = WEST;
     else
         currHead--;
     return LEFT;
-
-    //for (int i = 0; i < 16; i++)
-    //{
-    //    for (int j = 0; j < 16; j++)
-    //    {
-    //        insertQueue(newCell(i, j));
-    //        API_setColor(i, j, 'g');
-    //    }
-    //}
-    //for (int i = 0; i < 16; i++)
-    //{
-    //    for (int j = 0; j < 16; j++)
-    //    {
-    //        insertQueue(newCell(i, j));
-    //        API_setColor(i, j, 'r');
-    //    }
-    //}
-
-    //while (queueStart != queueEnd)
-    //{
-    //    API_setColor(queueFront()->row, queueFront()->col, 'b');
-    //    popQueueFront();
-    //}
-    //
-    //for (int i = 0; i < 16; i++)
-    //{
-    //    for (int j = 0; j < 16; j++)
-    //    {
-    //        insertQueue(newCell(i, j));
-    //        API_setColor(i, j, 'y');
-    //    }
-    //}
-
-    //while (queueStart != queueEnd)
-    //{
-    //    API_setColor(queueFront()->row, queueFront()->col, 'g');
-    //    popQueueFront();
-    //}
 }
